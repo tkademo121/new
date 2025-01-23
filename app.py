@@ -1,10 +1,10 @@
 import openai
 import pandas as pd
 import streamlit as st
- 
+import os
  
 # Set your OpenAI API key
-client = openai.OpenAI(api_key= "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")
+client = openai.OpenAI(api_key= os.getenv("OPENAI_API_KEY"))
  
 def load_data():
     # Replace with your dataset path
