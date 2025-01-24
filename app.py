@@ -84,20 +84,20 @@ Hackathon Tasks:
 def ask_chatbot(question, insights):
     # List of greetings and small talk phrases
     greetings = ["hello", "hi", "hey", "how are you", "good morning", "good afternoon", "good evening"]
- 
+
     # Check if the question is a greeting
     is_greeting = any(greeting in question.lower() for greeting in greetings) and not any(word in question.lower() for word in ["aqi", "traffic", "noise", "speed", "pm2.5", "passenger", "correlation", "dataset"])
- 
+
     # If it's a greeting, respond politely
     if is_greeting:
         return "Hello! I'm here to help you with the urban mobility dataset and hackathon tasks. How can I assist you today?"
- 
+
     # Combine system prompt and user question
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": question}
     ]
- 
+
     # Call OpenAI API
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -105,10 +105,23 @@ def ask_chatbot(question, insights):
         max_tokens=300,  # Increase token limit for detailed responses
         temperature=0.7
     )
- 
+
     # Extract the chatbot's response
     chatbot_response = response.choices[0].message.content
- 
+
+    # Check if the response is too restrictive and adjust if necessary
+    if "I can only answer questions related to" in chatbot_response:
+        # Re-ask the question with a more permissive prompt
+        messages.append({"role": "assistant", "content": chatbot_response})
+        messages.append({"role": "user", "content": question})
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            max_tokens=300,
+            temperature=0.7
+        )
+        chatbot_response = response.choices[0].message.content
+
     # Add precomputed insights if relevant
     if "traffic volume at" in question.lower():
         location = question.split("at")[-1].strip()
@@ -138,7 +151,7 @@ def ask_chatbot(question, insights):
         lowest_pm25_location = min(insights["pm25_by_location"], key=insights["pm25_by_location"].get)
         lowest_aqi_location = min(insights["aqi_by_location"], key=insights["aqi_by_location"].get)
         chatbot_response += f"\nInsight: Locations with the lowest PM2.5 levels and AQI are typically residential or rural areas with minimal pollution sources."
- 
+
     return chatbot_response
  
 # Streamlit app
@@ -177,11 +190,12 @@ def main():
         This chatbot is designed to help you analyze and understand the urban mobility dataset. Here's how you can use it:
  
         - **Ask Questions**: Type your question in the input box below and click "Submit".
-        - **Dataset Insights**: The chatbot can provide insights about traffic volume, air quality, noise levels, and more.
+        - **Dataset Insights**: The chatbot can help you with the steps to get insights.
         - **Hackathon Tasks**: Use the chatbot to get guidance on tasks like data analysis, advanced analysis, and AI modeling.
+        - **This bot is not designed to give direct answers.**
  
         **Example Questions**:
-        - What is the average traffic volume?
+        - How to calculate the average traffic volume?
         - Which location has the highest AQI?
         - What are the high correlations in the dataset?
         """)
@@ -219,6 +233,8 @@ def main():
             st.write(f"**YOU**: {user_message['content']}")
             # Display chatbot message with unique identifier
             st.write(f"**Chatbot**: {chatbot_message['content']}")
+            # Add a divider between chats
+            st.divider()
 # Run the app
 if __name__ == "__main__":
     main()
