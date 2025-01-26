@@ -6,8 +6,7 @@ import os
 # Set your OpenAI API key
 client = openai.OpenAI(api_key= os.getenv("OPENAI_API_KEY"))
  
-# Cache the data loading and insights computation
-@st.cache_data
+# Remove @st.cache_data decorator
 def load_data():
     # Replace with your dataset path
     data = pd.read_csv("cleaned_data.csv")
@@ -82,8 +81,7 @@ Hackathon Tasks:
 5. Respond to greetings and small talk politely.
 """
 
-# Cache the chatbot responses
-@st.cache_data
+# Remove @st.cache_data decorator
 def ask_chatbot(question, insights, chat_history):
     # List of greetings and small talk phrases
     greetings = ["hello", "hi", "hey", "how are you", "good morning", "good afternoon", "good evening"]
@@ -94,6 +92,10 @@ def ask_chatbot(question, insights, chat_history):
     # If it's a greeting, respond politely
     if is_greeting:
         return "Hello! I'm here to help you with the urban mobility dataset and hackathon tasks. How can I assist you today?"
+
+    # Handle questions about target variables
+    if "target variable" in question.lower() or "build model" in question.lower():
+        return "For building a model, you can consider using 'Traffic Volume' or 'AQI' as the target variable, depending on whether you're predicting traffic patterns or air quality. These variables are key indicators in urban mobility analysis."
 
     # Combine system prompt, chat history, and user question
     messages = [
