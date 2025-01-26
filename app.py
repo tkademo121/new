@@ -1,10 +1,10 @@
-import openai
+import openai import OpenAI
 import pandas as pd
 import streamlit as st
 import os
  
 # Set your OpenAI API key
-client = openai.OpenAI(api_key= os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key= os.getenv("OPENAI_API_KEY"))
  
 # Remove @st.cache_data decorator
 def load_data():
